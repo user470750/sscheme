@@ -27,5 +27,5 @@ pub enum Func {
         arity: usize,
         code: Vec<OpCode>,
     },
-    NativeFunc // TODO
+    NativeFunc, // TODO
 }
