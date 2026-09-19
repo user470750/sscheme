@@ -12,6 +12,7 @@ use crate::value::{Func, Proto, Value};
 pub enum OpCode {
     Return,
     LoadNil,
+    LoadBool(bool),
     LoadNumber(i32),
     LoadConst(usize),
     GlobalGet(Symbol),
@@ -64,6 +65,7 @@ impl VM {
                     return Ok(self.stack.pop().unwrap());
                 }
                 OpCode::LoadNil => self.stack.push(Value::Nil),
+                OpCode::LoadBool(boolean) => self.stack.push(Value::Bool(*boolean)),
                 OpCode::LoadNumber(number) => self.stack.push(Value::Number(*number)),
                 OpCode::LoadConst(index) => self
                     .stack

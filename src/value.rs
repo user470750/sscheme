@@ -14,6 +14,9 @@ pub enum Value {
     /// Nil, written `()`: a special value, not a list.
     Nil,
 
+    /// A boolean, written `#t` or `#f`.
+    Bool(bool),
+
     /// An integer.
     Number(i32),
 
@@ -90,6 +93,8 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Value::Nil => f.write_str("()"),
+            Value::Bool(true) => f.write_str("#t"),
+            Value::Bool(false) => f.write_str("#f"),
             Value::Number(number) => write!(f, "{number}"),
             Value::Symbol(symbol) => write!(f, "{symbol}"),
             Value::List(items) => {
