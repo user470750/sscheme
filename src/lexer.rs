@@ -2,6 +2,8 @@
 //!
 //! Built on [`logos`].
 
+use std::fmt;
+
 use crate::symbol::Symbol;
 use logos::{Lexer, Logos};
 
@@ -37,6 +39,19 @@ pub(crate) enum Token {
     /// Quote prefix.
     #[regex("['`]")]
     Quote,
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Token::Number(number) => write!(f, "{number}"),
+            Token::Symbol(symbol) => write!(f, "{symbol}"),
+            Token::LParen => f.write_str("("),
+            Token::RParen => f.write_str(")"),
+            Token::Dot => f.write_str("."),
+            Token::Quote => f.write_str("'"),
+        }
+    }
 }
 
 /// Interns the current slice as a [`Symbol`].
