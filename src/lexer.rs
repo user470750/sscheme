@@ -4,8 +4,6 @@ use logos::{Lexer, Logos};
 #[derive(Logos, Debug, PartialEq, Eq, Hash, Clone)]
 #[logos(skip r"[ \t\n\r]+")]
 pub(crate) enum Token {
-    Error,
-
     #[regex("-?[0-9]+", |lex| lex.slice().parse().ok(), priority=3)]
     Number(i32),
 
