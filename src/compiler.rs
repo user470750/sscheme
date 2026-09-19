@@ -153,13 +153,14 @@ impl Compiler {
         }
         let pre_env_pointer = self.env_pointer;
         self.env.push((pre_env_pointer, args));
-        self.env_pointer = Some(self.env.len() - 1);
+        let frame = self.env.len() - 1;
+        self.env_pointer = Some(frame);
         let mut body = vec![];
         self.compile(lambda.get(2).unwrap(), constants, &mut body)?;
         body.push(OpCode::Return);
         let closure = constants
             .insert_full(Value::Func(Func::Closure {
-                env_pointer: self.env.len() - 1,
+                env_pointer: frame,
                 arity: idenifier_list.len(),
                 code: body,
             }))
