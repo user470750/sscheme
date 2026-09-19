@@ -140,9 +140,9 @@ impl Compiler {
                 passed: lambda.len() - 1,
             });
         }
-        let idenifier_list: &[Value] = match lambda.get(1).unwrap() {
+        let params: &[Value] = match lambda.get(1).unwrap() {
             Value::Nil => &[],
-            Value::List(idenifier_list) => idenifier_list,
+            Value::List(params) => params,
             _ => {
                 return Err(CompilerError::WrongArgument {
                     exp_name: "lambda",
@@ -151,7 +151,7 @@ impl Compiler {
             }
         };
         let mut args = vec![];
-        for ident in idenifier_list {
+        for ident in params {
             if let Value::Symbol(arg_name) = ident {
                 args.push(*arg_name);
             }
@@ -166,12 +166,12 @@ impl Compiler {
         let closure = constants
             .insert_full(Value::Func(Func::Closure {
                 env_pointer: frame,
-                arity: idenifier_list.len(),
+                arity: params.len(),
                 code: body,
             }))
             .0;
         self.env_pointer = pre_env_pointer;
-        code.push(OpCode::NewEnv(idenifier_list.len()));
+        code.push(OpCode::NewEnv(params.len()));
         code.push(OpCode::LoadConst(closure));
         Ok(())
     }
