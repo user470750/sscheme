@@ -25,6 +25,7 @@ pub enum Error {
     Interpreter(#[from] InterpreterError),
 }
 
+/// A malformed special form.
 #[derive(Error, Debug)]
 pub enum CompilerError {
     #[error("`{exp_name}` expects {expected} argument(s), got {passed}")]
@@ -47,6 +48,7 @@ pub enum CompilerError {
     NotTopLevel { exp_name: &'static str },
 }
 
+/// An error while running compiled code.
 #[derive(Error, Debug)]
 pub enum InterpreterError {
     #[error("unbound variable `{0}`")]

@@ -25,12 +25,17 @@ pub enum Value {
 
     /// A proper list. It is never empty: `()` is [`Nil`](Value::Nil).
     List(Vec<Value>),
+
+    /// A procedure.
     Func(Func),
 }
 
+/// A procedure.
 #[derive(Clone)]
 pub enum Func {
+    /// A compiled `lambda` with the frame it was created in.
     Closure { proto: Rc<Proto>, env: Option<Env> },
+    /// A procedure implemented in Rust.
     NativeFunc, // TODO
 }
 
