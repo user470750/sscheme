@@ -5,7 +5,14 @@ use crate::lexer::Token;
 use crate::symbol::Symbol;
 use crate::value::Value;
 
-pub(crate) fn parser<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, Token>>>
+pub(crate) fn program<'a, I>() -> impl Parser<'a, I, Vec<Value>, extra::Err<Rich<'a, Token>>>
+where
+    I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
+{
+    expression().repeated().collect()
+}
+
+fn expression<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, Token>>>
 where
     I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
 {
