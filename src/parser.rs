@@ -9,10 +9,6 @@ pub(crate) fn parser<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, T
 where
     I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
 {
-    let nil = just(Token::LParen)
-        .then(just(Token::RParen))
-        .map(|_| Value::Nil);
-
     let atom = select! {
         Token::Symbol(symbol) => Value::Symbol(symbol),
         Token::Number(number) => Value::Number(number),
@@ -23,35 +19,27 @@ where
             .then(s_expression.clone())
             .map(|(_, expr)| Value::List(vec![Value::Symbol(Symbol::from("quote")), expr]));
 
+        let tail = just(Token::Dot).ignore_then(s_expression.clone());
         let list = s_expression
-            .clone()
             .repeated()
-            .collect()
-            .map(|exps: Vec<Value>| Value::List(exps))
-            .delimited_by(just(Token::LParen), just(Token::RParen));
-
-        let dot_notation = s_expression
-            .clone()
-            .then_ignore(just(Token::Dot))
-            .then(s_expression)
+            .at_least(1)
+            .collect::<Vec<_>>()
+            .then(tail.or_not())
+            .or_not()
             .delimited_by(just(Token::LParen), just(Token::RParen))
-            .map(|(car, cdr)| match cdr {
-                Value::Nil => {
-                    if let Value::List(pair) = car {
-                        Value::List(pair)
-                    } else {
-                        Value::List(vec![car])
-                    }
+            .validate(|list, e, emitter| match list {
+                None => Value::Nil,
+                Some((items, None | Some(Value::Nil))) => Value::List(items),
+                Some((mut items, Some(Value::List(tail)))) => {
+                    items.extend(tail);
+                    Value::List(items)
                 }
-                Value::List(mut pair) => {
-                    pair.insert(0, car);
-                    Value::List(pair)
-                }
-                _ => {
-                    panic!("Cons list always ends with nil.");
+                Some((items, Some(_))) => {
+                    emitter.emit(Rich::custom(e.span(), "improper lists are not supported"));
+                    Value::List(items)
                 }
             });
 
-        nil.or(atom).or(quoted).or(list).or(dot_notation)
+        atom.or(quoted).or(list)
     })
 }
