@@ -5,7 +5,7 @@ use crate::lexer::Token;
 use crate::symbol::Symbol;
 use crate::value::Value;
 
-pub fn parser<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, Token>>>
+pub(crate) fn parser<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, Token>>>
 where
     I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
 {
