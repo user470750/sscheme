@@ -1,6 +1,6 @@
 use crate::symbol::Symbol;
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(crate) enum Value {
     Nil,
     Number(i32),
