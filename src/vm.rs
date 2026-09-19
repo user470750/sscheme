@@ -99,8 +99,9 @@ impl VM {
                     env.get_mut(env_pointer)
                         .unwrap()
                         .extend(args.into_iter().rev());
-                    self.interpret(body, env, constants)?;
+                    let result = self.interpret(body, env, constants)?;
                     env.get_mut(env_pointer).unwrap().clear();
+                    self.stack.push(result);
                 }
             };
             ip += 1
