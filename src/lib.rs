@@ -1,6 +1,7 @@
 //! A minimal toy Scheme: a VM-based interpreter.
 
 mod compiler;
+mod env;
 mod errors;
 mod lexer;
 mod parser;
@@ -22,7 +23,6 @@ pub use crate::value::Value;
 pub struct Interpreter {
     compiler: Compiler,
     vm: VM,
-    env: Vec<Vec<Value>>,
     constants: IndexSet<Value>,
 }
 
@@ -32,7 +32,6 @@ impl Interpreter {
         Self {
             compiler: Compiler::new(),
             vm: VM::new(HashMap::new()),
-            env: Vec::new(),
             constants: IndexSet::new(),
         }
     }
@@ -51,9 +50,7 @@ impl Interpreter {
             let code = self
                 .compiler
                 .compile_toplevel(&expression, &mut self.constants)?;
-            result = self
-                .vm
-                .interpret(&code, &mut self.env, &mut self.constants)?;
+            result = self.vm.interpret(&code, None, &mut self.constants)?;
         }
         Ok(result)
     }

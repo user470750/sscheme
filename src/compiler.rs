@@ -2,21 +2,18 @@ use std::rc::Rc;
 
 use crate::errors::CompilerError;
 use crate::symbol::Symbol;
-use crate::value::{Func, Proto, Value};
+use crate::value::{Proto, Value};
 use crate::vm::OpCode;
 use indexmap::IndexSet;
 
 pub(crate) struct Compiler {
-    env_pointer: Option<usize>,
-    env: Vec<(Option<usize>, Vec<Symbol>)>,
+    /// Parameter names of the `lambda`s being compiled, innermost last.
+    scopes: Vec<Vec<Symbol>>,
 }
 
 impl Compiler {
     pub(crate) fn new() -> Self {
-        Self {
-            env_pointer: None,
-            env: vec![],
-        }
+        Self { scopes: Vec::new() }
     }
 
     pub(crate) fn compile_toplevel(
@@ -47,17 +44,23 @@ impl Compiler {
     }
 
     fn compile_identifier(&self, ident: Symbol) -> OpCode {
-        let mut pointer = self.env_pointer;
-        while let Some(p) = pointer {
-            let frame = self.env.get(p).unwrap(); // pointer is always valid
-            pointer = frame.0;
-            for (i, local) in frame.1.iter().enumerate().rev() {
-                if *local == ident {
-                    return OpCode::LocalGet(p, i);
-                }
-            }
+        match self.resolve(ident) {
+            Some((depth, index)) => OpCode::LocalGet(depth, index),
+            None => OpCode::GlobalGet(ident),
         }
-        OpCode::GlobalGet(ident)
+    }
+
+    /// Finds a local variable as the number of frames to go up and its index
+    /// in that frame, or `None` for a global.
+    fn resolve(&self, ident: Symbol) -> Option<(usize, usize)> {
+        self.scopes
+            .iter()
+            .rev()
+            .enumerate()
+            .find_map(|(depth, scope)| {
+                let index = scope.iter().rposition(|local| *local == ident)?;
+                Some((depth, index))
+            })
     }
 
     fn compile_list(
@@ -110,19 +113,10 @@ impl Compiler {
             });
         };
         self.compile(exp.get(2).unwrap(), constants, code)?;
-        let mut pointer = self.env_pointer;
-        while let Some(p) = pointer {
-            let frame = self.env.get(p).unwrap(); // pointer is always valid
-            pointer = frame.0;
-            for (i, local) in frame.1.iter().enumerate().rev() {
-                if local == ident {
-                    code.push(OpCode::SetLocal(p, i));
-                    code.push(OpCode::LoadNil);
-                    return Ok(());
-                }
-            }
+        match self.resolve(*ident) {
+            Some((depth, index)) => code.push(OpCode::SetLocal(depth, index)),
+            None => code.push(OpCode::SetGlobal(*ident)),
         }
-        code.push(OpCode::SetGlobal(*ident));
         code.push(OpCode::LoadNil);
         Ok(())
     }
@@ -160,25 +154,16 @@ impl Compiler {
             };
             args.push(*arg_name);
         }
-        let pre_env_pointer = self.env_pointer;
-        self.env.push((pre_env_pointer, args));
-        let frame = self.env.len() - 1;
-        self.env_pointer = Some(frame);
         let mut body = vec![];
-        self.compile(lambda.get(2).unwrap(), constants, &mut body)?;
+        self.scopes.push(args);
+        let compiled = self.compile(lambda.get(2).unwrap(), constants, &mut body);
+        self.scopes.pop();
+        compiled?;
         body.push(OpCode::Return);
-        let closure = constants
-            .insert_full(Value::Func(Func::Closure {
-                env_pointer: frame,
-                proto: Rc::new(Proto {
-                    arity: params.len(),
-                    code: body,
-                }),
-            }))
-            .0;
-        self.env_pointer = pre_env_pointer;
-        code.push(OpCode::NewEnv(params.len()));
-        code.push(OpCode::LoadConst(closure));
+        code.push(OpCode::MakeClosure(Rc::new(Proto {
+            arity: params.len(),
+            code: body,
+        })));
         Ok(())
     }
 

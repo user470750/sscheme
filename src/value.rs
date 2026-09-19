@@ -4,6 +4,7 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+use crate::env::Env;
 use crate::symbol::Symbol;
 use crate::vm::OpCode;
 
@@ -24,12 +25,9 @@ pub enum Value {
     Func(Func),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum Func {
-    Closure {
-        env_pointer: usize,
-        proto: Rc<Proto>,
-    },
+    Closure { proto: Rc<Proto>, env: Option<Env> },
     NativeFunc, // TODO
 }
 
@@ -39,12 +37,15 @@ impl PartialEq for Func {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
-                Func::Closure { env_pointer, proto },
+                Func::Closure { proto, env },
                 Func::Closure {
-                    env_pointer: other_env_pointer,
                     proto: other_proto,
+                    env: other_env,
                 },
-            ) => env_pointer == other_env_pointer && Rc::ptr_eq(proto, other_proto),
+            ) => {
+                Rc::ptr_eq(proto, other_proto)
+                    && env.as_ref().map(Rc::as_ptr) == other_env.as_ref().map(Rc::as_ptr)
+            }
             (Func::NativeFunc, Func::NativeFunc) => true,
             _ => false,
         }
@@ -56,11 +57,24 @@ impl Eq for Func {}
 impl Hash for Func {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
-            Func::Closure { env_pointer, proto } => {
-                env_pointer.hash(state);
+            Func::Closure { proto, env } => {
                 Rc::as_ptr(proto).hash(state);
+                env.as_ref().map(Rc::as_ptr).hash(state);
             }
             Func::NativeFunc => {}
+        }
+    }
+}
+
+/// Shows only the arity: the environment may contain the closure itself.
+impl fmt::Debug for Func {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Func::Closure { proto, .. } => f
+                .debug_struct("Closure")
+                .field("arity", &proto.arity)
+                .finish_non_exhaustive(),
+            Func::NativeFunc => f.write_str("NativeFunc"),
         }
     }
 }
