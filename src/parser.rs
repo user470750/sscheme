@@ -1,3 +1,7 @@
+//! Parser: reads Scheme expressions.
+//!
+//! Built on [`chumsky`].
+
 use chumsky::input::ValueInput;
 use chumsky::prelude::*;
 
@@ -5,6 +9,7 @@ use crate::lexer::Token;
 use crate::symbol::Symbol;
 use crate::value::Value;
 
+/// Parses expressions until the end of input.
 pub(crate) fn program<'a, I>() -> impl Parser<'a, I, Vec<Value>, extra::Err<Rich<'a, Token>>>
 where
     I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
@@ -12,6 +17,11 @@ where
     expression().repeated().collect()
 }
 
+/// Parses one expression: an atom, a list or a quoted expression.
+///
+/// `'x` is read as `(quote x)` and `()` as [`Value::Nil`]. A dotted list is
+/// kept only when its tail is a list, as in `(a . (b))`; improper lists such
+/// as `(a . b)` are reported as errors.
 fn expression<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, Token>>>
 where
     I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
