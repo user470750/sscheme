@@ -42,6 +42,9 @@ pub enum CompilerError {
 
     #[error("internal error: empty list was not read as `()`")]
     NilCombination,
+
+    #[error("`{exp_name}` is only allowed at the top level")]
+    NotTopLevel { exp_name: &'static str },
 }
 
 #[derive(Error, Debug)]

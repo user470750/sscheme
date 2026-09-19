@@ -85,6 +85,7 @@ impl Compiler {
                     ));
                 }
                 "set" => self.compile_set_exp(list, constants, code)?,
+                "define" => self.compile_define(list, constants, code)?,
                 "lambda" => self.compile_closure(list, constants, code)?,
                 "if" => self.compile_if_exp(list, constants, code)?,
                 _ => self.compile_call(list, constants, code)?,
@@ -119,6 +120,55 @@ impl Compiler {
             None => code.push(OpCode::SetGlobal(*ident)),
         }
         code.push(OpCode::LoadNil);
+        Ok(())
+    }
+
+    /// Compiles `(define name value)` and `(define (name params...) body)`,
+    /// the latter as `(define name (lambda (params...) body))`.
+    fn compile_define(
+        &mut self,
+        exp: &[Value],
+        constants: &mut IndexSet<Value>,
+        code: &mut Vec<OpCode>,
+    ) -> Result<(), CompilerError> {
+        if !self.scopes.is_empty() {
+            return Err(CompilerError::NotTopLevel { exp_name: "define" });
+        }
+        if exp.len() != 3 {
+            return Err(CompilerError::ArityError {
+                exp_name: "define",
+                expected: "2",
+                passed: exp.len() - 1,
+            });
+        }
+        let malformed = || CompilerError::WrongArgument {
+            exp_name: "define",
+            expected: "a name or (name parameters...)",
+        };
+        let name = match exp.get(1).unwrap() {
+            Value::Symbol(name) => {
+                self.compile(exp.get(2).unwrap(), constants, code)?;
+                *name
+            }
+            Value::List(signature) => {
+                let [Value::Symbol(name), params @ ..] = signature.as_slice() else {
+                    return Err(malformed());
+                };
+                let params = match params {
+                    [] => Value::Nil,
+                    params => Value::List(params.to_vec()),
+                };
+                let lambda = [
+                    Value::Symbol(Symbol::from("lambda")),
+                    params,
+                    exp.get(2).unwrap().clone(),
+                ];
+                self.compile_closure(&lambda, constants, code)?;
+                *name
+            }
+            _ => return Err(malformed()),
+        };
+        code.push(OpCode::DefineGlobal(name));
         Ok(())
     }
 

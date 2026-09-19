@@ -18,6 +18,7 @@ pub enum OpCode {
     GlobalGet(Symbol),
     LocalGet(usize, usize),
     SetGlobal(Symbol),
+    DefineGlobal(Symbol),
     SetLocal(usize, usize),
     Apply(usize),
     Jump(usize),
@@ -91,6 +92,11 @@ impl VM {
                 }
                 OpCode::SetGlobal(ident) => {
                     self.global_env.insert(*ident, self.stack.pop().unwrap());
+                }
+                OpCode::DefineGlobal(ident) => {
+                    let value = self.stack.pop().unwrap();
+                    self.global_env.insert(*ident, value);
+                    self.stack.push(Value::Symbol(*ident));
                 }
                 OpCode::MakeClosure(proto) => self.stack.push(Value::Func(Func::Closure {
                     proto: proto.clone(),
