@@ -1,3 +1,5 @@
+//! Virtual machine: a stack machine that runs compiled code.
+
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -8,24 +10,34 @@ use crate::errors::InterpreterError;
 use crate::symbol::Symbol;
 use crate::value::{Func, Proto, Value};
 
+/// A VM instruction. Jump offsets count instructions to skip after the jump.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum OpCode {
+    /// Returns the value on top of the stack to the caller.
     Return,
     LoadNil,
     LoadBool(bool),
     LoadNumber(i32),
+    /// Pushes a constant from the pool.
     LoadConst(usize),
     GlobalGet(Symbol),
+    /// Pushes a local: frames to go up from the current one, then its index.
     LocalGet(usize, usize),
+    /// Assigns a global, creating it if needed, see `set`.
     SetGlobal(Symbol),
+    /// Binds a global and pushes its name, see `define`.
     DefineGlobal(Symbol),
     SetLocal(usize, usize),
+    /// Calls the procedure below the given number of arguments.
     Apply(usize),
     Jump(usize),
+    /// Pops a value and jumps if it is `#f` or `()`.
     JumpIfFalse(usize),
+    /// Pushes a closure over the compiled `lambda` and the current frame.
     MakeClosure(Rc<Proto>),
 }
 
+/// Runs compiled code, keeping globals between runs.
 pub(crate) struct VM {
     global_env: HashMap<Symbol, Value>,
     stack: Vec<Value>,

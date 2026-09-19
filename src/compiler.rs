@@ -1,3 +1,8 @@
+//! Compiler: turns expressions into instructions for the VM.
+//!
+//! Special forms are `quote`, `if`, `lambda`, `set` and `define`; every
+//! other list is a procedure call.
+
 use std::rc::Rc;
 
 use crate::errors::CompilerError;
@@ -6,6 +11,7 @@ use crate::value::{Proto, Value};
 use crate::vm::OpCode;
 use indexmap::IndexSet;
 
+/// Compiles top-level expressions one at a time.
 pub(crate) struct Compiler {
     /// Parameter names of the `lambda`s being compiled, innermost last.
     scopes: Vec<Vec<Symbol>>,
@@ -16,6 +22,7 @@ impl Compiler {
         Self { scopes: Vec::new() }
     }
 
+    /// Compiles a top-level expression, adding its quoted data to `constants`.
     pub(crate) fn compile_toplevel(
         &mut self,
         source: &Value,
