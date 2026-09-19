@@ -189,7 +189,7 @@ impl Compiler {
         if if_exp.len() < 3 || if_exp.len() > 4 {
             return Err(CompilerError::ArityError {
                 exp_name: "if",
-                expected: "2",
+                expected: "2 or 3",
                 passed: if_exp.len() - 1,
             });
         }
