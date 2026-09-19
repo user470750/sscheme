@@ -140,11 +140,15 @@ impl Compiler {
                 passed: lambda.len() - 1,
             });
         }
-        let Value::List(idenifier_list) = lambda.get(1).unwrap() else {
-            return Err(CompilerError::WrongArgument {
-                exp_name: "lambda",
-                expected: "list of identifiers",
-            });
+        let idenifier_list: &[Value] = match lambda.get(1).unwrap() {
+            Value::Nil => &[],
+            Value::List(idenifier_list) => idenifier_list,
+            _ => {
+                return Err(CompilerError::WrongArgument {
+                    exp_name: "lambda",
+                    expected: "list of identifiers",
+                });
+            }
         };
         let mut args = vec![];
         for ident in idenifier_list {
