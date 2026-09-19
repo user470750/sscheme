@@ -1,5 +1,7 @@
 //! Scheme values: the data programs work with and the code they are read as.
 
+use std::fmt;
+
 use crate::symbol::Symbol;
 use crate::vm::OpCode;
 
@@ -28,4 +30,25 @@ pub enum Func {
         code: Vec<OpCode>,
     },
     NativeFunc, // TODO
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Value::Nil => f.write_str("()"),
+            Value::Number(number) => write!(f, "{number}"),
+            Value::Symbol(symbol) => write!(f, "{symbol}"),
+            Value::List(items) => {
+                f.write_str("(")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        f.write_str(" ")?;
+                    }
+                    write!(f, "{item}")?;
+                }
+                f.write_str(")")
+            }
+            Value::Func(_) => f.write_str("#<procedure>"),
+        }
+    }
 }
