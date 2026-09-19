@@ -53,6 +53,7 @@ where
     let atom = select! {
         Token::Symbol(symbol) => Value::Symbol(symbol),
         Token::Number(number) => Value::Number(number),
+        Token::Bool(boolean) => Value::Bool(boolean),
     };
 
     recursive(|s_expression| {

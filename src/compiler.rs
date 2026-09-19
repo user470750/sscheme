@@ -35,6 +35,7 @@ impl Compiler {
     ) -> Result<(), CompilerError> {
         match source {
             Value::Nil => code.push(OpCode::LoadNil),
+            Value::Bool(boolean) => code.push(OpCode::LoadBool(*boolean)),
             Value::Number(num) => code.push(OpCode::LoadNumber(*num)),
             Value::Symbol(ident) => code.push(self.compile_identifier(*ident)),
             Value::List(list) => self.compile_list(list, constants, code)?,
