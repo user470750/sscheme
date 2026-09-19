@@ -152,9 +152,13 @@ impl Compiler {
         };
         let mut args = vec![];
         for ident in params {
-            if let Value::Symbol(arg_name) = ident {
-                args.push(*arg_name);
-            }
+            let Value::Symbol(arg_name) = ident else {
+                return Err(CompilerError::WrongArgument {
+                    exp_name: "lambda",
+                    expected: "list of identifiers",
+                });
+            };
+            args.push(*arg_name);
         }
         let pre_env_pointer = self.env_pointer;
         self.env.push((pre_env_pointer, args));
