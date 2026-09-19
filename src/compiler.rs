@@ -70,7 +70,7 @@ impl Compiler {
                     if list.len() != 2 {
                         return Err(CompilerError::ArityError {
                             exp_name: "quote",
-                            expected: 1,
+                            expected: "1",
                             passed: list.len() - 1,
                         });
                     }
@@ -97,7 +97,7 @@ impl Compiler {
         if exp.len() != 3 {
             return Err(CompilerError::ArityError {
                 exp_name: "set",
-                expected: 2,
+                expected: "2",
                 passed: exp.len() - 1,
             });
         }
@@ -136,7 +136,7 @@ impl Compiler {
         if lambda.len() != 3 {
             return Err(CompilerError::ArityError {
                 exp_name: "lambda",
-                expected: 2,
+                expected: "2",
                 passed: lambda.len() - 1,
             });
         }
@@ -189,7 +189,7 @@ impl Compiler {
         if if_exp.len() < 3 || if_exp.len() > 4 {
             return Err(CompilerError::ArityError {
                 exp_name: "if",
-                expected: 2,
+                expected: "2",
                 passed: if_exp.len() - 1,
             });
         }

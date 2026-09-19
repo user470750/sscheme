@@ -28,7 +28,7 @@ pub enum CompilerError {
     #[error("{exp_name} expression takes {expected} arguments but {passed} argument were passed.")]
     ArityError {
         exp_name: &'static str,
-        expected: usize,
+        expected: &'static str,
         passed: usize,
     },
 
