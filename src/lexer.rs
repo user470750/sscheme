@@ -17,6 +17,11 @@ pub(crate) enum Token {
     #[regex("-?[0-9]+", |lex| lex.slice().parse().ok(), priority=3)]
     Number(i32),
 
+    /// A boolean literal, `#t` or `#f`.
+    #[token("#t", |_| true)]
+    #[token("#f", |_| false)]
+    Bool(bool),
+
     /// An identifier, interned at lex time.
     ///
     /// Anything that is not a valid [`Number`](Token::Number) also lexes as a
@@ -45,6 +50,8 @@ impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Token::Number(number) => write!(f, "{number}"),
+            Token::Bool(true) => f.write_str("#t"),
+            Token::Bool(false) => f.write_str("#f"),
             Token::Symbol(symbol) => write!(f, "{symbol}"),
             Token::LParen => f.write_str("("),
             Token::RParen => f.write_str(")"),
