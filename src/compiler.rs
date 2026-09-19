@@ -130,7 +130,7 @@ impl Compiler {
         &mut self,
         lambda: &[Value],
         constants: &mut IndexSet<Value>,
-        code: &mut Vec<OpCode>
+        code: &mut Vec<OpCode>,
     ) -> Result<(), CompilerError> {
         if lambda.len() != 3 {
             return Err(CompilerError::ArityError {
