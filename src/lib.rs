@@ -53,7 +53,7 @@ impl Interpreter {
                 .compile_toplevel(&expression, &mut self.constants)?;
             result = self
                 .vm
-                .interpret(code, &mut self.env, &mut self.constants)?;
+                .interpret(&code, &mut self.env, &mut self.constants)?;
         }
         Ok(result)
     }
