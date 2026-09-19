@@ -1,4 +1,5 @@
 use crate::lexer::Token;
+use crate::symbol::Symbol;
 use crate::value::Value;
 use chumsky::error::Rich;
 use chumsky::extra;
@@ -9,7 +10,6 @@ use chumsky::select;
 use chumsky::span::SimpleSpan;
 use chumsky::IterParser;
 use chumsky::Parser;
-use internment::Intern;
 
 pub fn parser<'a, I>() -> impl Parser<'a, I, Value, extra::Err<Rich<'a, Token>>>
 where
@@ -20,14 +20,14 @@ where
         .map(|_| Value::Nil);
 
     let atom = select! {
-        Token::Symbol(identifier) => Value::Identifier(Intern::from(identifier)),
+        Token::Symbol(symbol) => Value::Symbol(symbol),
         Token::Number(number) => Value::Number(number),
     };
 
     recursive::recursive(|s_expression| {
         let quoted = primitive::just(Token::Quote)
             .then(s_expression.clone())
-            .map(|(_, expr)| Value::List(vec![Value::Identifier(Intern::from("quote")), expr]));
+            .map(|(_, expr)| Value::List(vec![Value::Symbol(Symbol::from("quote")), expr]));
 
         let list = s_expression
             .clone()
