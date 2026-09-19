@@ -2,15 +2,39 @@
 //!
 //! Built on [`chumsky`].
 
-use chumsky::input::ValueInput;
+use chumsky::input::{Stream, ValueInput};
 use chumsky::prelude::*;
+use logos::Logos;
 
+use crate::errors::Error;
 use crate::lexer::Token;
 use crate::symbol::Symbol;
 use crate::value::Value;
 
+/// Reads every expression in `source`, reporting only the first error.
+pub(crate) fn read(source: &str) -> Result<Vec<Value>, Error> {
+    let tokens = Token::lexer(source)
+        .spanned()
+        .map(|(token, span)| {
+            let span = SimpleSpan::from(span);
+            token
+                .map(|token| (token, span))
+                .map_err(|()| Error::Lex { span })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let end = SimpleSpan::from(source.len()..source.len());
+    let input = Stream::from_iter(tokens).map(end, |(token, span)| (token, span));
+    program().parse(input).into_result().map_err(|errors| {
+        let error = &errors[0];
+        Error::Parse {
+            span: *error.span(),
+            message: error.reason().to_string(),
+        }
+    })
+}
+
 /// Parses expressions until the end of input.
-pub(crate) fn program<'a, I>() -> impl Parser<'a, I, Vec<Value>, extra::Err<Rich<'a, Token>>>
+fn program<'a, I>() -> impl Parser<'a, I, Vec<Value>, extra::Err<Rich<'a, Token>>>
 where
     I: ValueInput<'a, Token = Token, Span = SimpleSpan>,
 {
