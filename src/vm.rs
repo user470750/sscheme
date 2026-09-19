@@ -22,20 +22,20 @@ pub enum OpCode {
     NewEnv(usize),
 }
 
-struct VM {
+pub(crate) struct VM {
     global_env: HashMap<Intern<str>, Value>,
     stack: Vec<Value>,
 }
 
 impl VM {
-    fn new(global_env: HashMap<Intern<str>, Value>) -> Self {
+    pub(crate) fn new(global_env: HashMap<Intern<str>, Value>) -> Self {
         Self {
             global_env,
             stack: vec![],
         }
     }
 
-    fn interpret(
+    pub(crate) fn interpret(
         &mut self,
         code: Vec<OpCode>,
         env: &mut Vec<Vec<Value>>,
