@@ -25,20 +25,20 @@ pub enum Error {
 
 #[derive(Error, Debug)]
 pub enum CompilerError {
-    #[error("{exp_name} expression takes {expected} arguments but {passed} argument were passed.")]
+    #[error("`{exp_name}` expects {expected} argument(s), got {passed}")]
     ArityError {
         exp_name: &'static str,
         expected: &'static str,
         passed: usize,
     },
 
-    #[error("{exp_name} expected {expected}.")]
+    #[error("`{exp_name}` expects {expected}")]
     WrongArgument {
         exp_name: &'static str,
         expected: &'static str,
     },
 
-    #[error("It is bug. Empty list must be nil. Open issue.")]
+    #[error("internal error: empty list was not read as `()`")]
     NilCombination,
 }
 
