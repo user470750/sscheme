@@ -12,7 +12,7 @@ pub(crate) struct Compiler {
 impl Compiler {
     pub(crate) fn new() -> Self {
         Self {
-            env_pointer: Some(0),
+            env_pointer: None,
             env: vec![],
         }
     }
