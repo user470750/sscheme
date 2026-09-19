@@ -12,9 +12,9 @@ pub enum OpCode {
     LoadNil,
     LoadNumber(i32),
     LoadConst(usize),
-    GlobalGet(usize),
+    GlobalGet(Intern<str>),
     LocalGet(usize, usize),
-    SetGlobal(usize),
+    SetGlobal(Intern<str>),
     SetLocal(usize, usize),
     Apply(usize),
     Jump(usize),
@@ -61,23 +61,14 @@ impl VM {
                 OpCode::LocalGet(frame, index) => self
                     .stack
                     .push(env.get(*frame).unwrap().get(*index).unwrap().clone()),
-                OpCode::GlobalGet(index) => {
-                    if let Value::Symbol(ident) = constants.get_index(*index).unwrap() {
-                        self.stack.push(self.global_env.get(ident).unwrap().clone());
-                    } else {
-                        unreachable!();
-                    }
+                OpCode::GlobalGet(ident) => {
+                    self.stack.push(self.global_env.get(ident).unwrap().clone());
                 }
                 OpCode::SetLocal(frame, index) => {
                     env[*frame][*index] = self.stack.pop().unwrap().clone();
                 }
-                OpCode::SetGlobal(index) => {
-                    if let Value::Symbol(ident) = constants.get_index(*index).unwrap() {
-                        self.global_env
-                            .insert(*ident, self.stack.pop().unwrap().clone());
-                    } else {
-                        unreachable!();
-                    }
+                OpCode::SetGlobal(ident) => {
+                    self.global_env.insert(*ident, self.stack.pop().unwrap());
                 }
                 OpCode::NewEnv(capacity) => env.push(Vec::with_capacity(*capacity)),
                 OpCode::Apply(args_len) => {
