@@ -1,12 +1,12 @@
 use crate::errors::CompilerError;
+use crate::symbol::Symbol;
 use crate::value::{Func, Value};
 use crate::vm::OpCode;
 use indexmap::IndexSet;
-use internment::Intern;
 
 pub(crate) struct Compiler {
     env_pointer: Option<usize>,
-    env: Vec<(Option<usize>, Vec<Intern<str>>)>,
+    env: Vec<(Option<usize>, Vec<Symbol>)>,
 }
 
 impl Compiler {
@@ -44,7 +44,7 @@ impl Compiler {
         Ok(())
     }
 
-    fn compile_identifier(&self, ident: Intern<str>) -> OpCode {
+    fn compile_identifier(&self, ident: Symbol) -> OpCode {
         let mut pointer = self.env_pointer;
         while let Some(p) = pointer {
             let frame = self.env.get(p).unwrap(); // pointer is always valid

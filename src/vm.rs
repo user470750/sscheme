@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use indexmap::IndexSet;
-use internment::Intern;
 
 use crate::errors::InterpreterError;
+use crate::symbol::Symbol;
 use crate::value::{Func, Value};
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -12,9 +12,9 @@ pub enum OpCode {
     LoadNil,
     LoadNumber(i32),
     LoadConst(usize),
-    GlobalGet(Intern<str>),
+    GlobalGet(Symbol),
     LocalGet(usize, usize),
-    SetGlobal(Intern<str>),
+    SetGlobal(Symbol),
     SetLocal(usize, usize),
     Apply(usize),
     Jump(usize),
@@ -23,12 +23,12 @@ pub enum OpCode {
 }
 
 pub(crate) struct VM {
-    global_env: HashMap<Intern<str>, Value>,
+    global_env: HashMap<Symbol, Value>,
     stack: Vec<Value>,
 }
 
 impl VM {
-    pub(crate) fn new(global_env: HashMap<Intern<str>, Value>) -> Self {
+    pub(crate) fn new(global_env: HashMap<Symbol, Value>) -> Self {
         Self {
             global_env,
             stack: vec![],
