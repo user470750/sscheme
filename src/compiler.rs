@@ -37,14 +37,14 @@ impl Compiler {
         match source {
             Value::Nil => code.push(OpCode::LoadNil),
             Value::Number(num) => code.push(OpCode::LoadNumber(*num)),
-            Value::Symbol(ident) => code.push(self.compile_identifier(*ident, constants)),
+            Value::Symbol(ident) => code.push(self.compile_identifier(*ident)),
             Value::List(list) => self.compile_list(list, constants, code)?,
             _ => unreachable!(),
         }
         Ok(())
     }
 
-    fn compile_identifier(&self, ident: Intern<str>, constants: &mut IndexSet<Value>) -> OpCode {
+    fn compile_identifier(&self, ident: Intern<str>) -> OpCode {
         let mut pointer = self.env_pointer;
         while let Some(p) = pointer {
             let frame = self.env.get(p).unwrap(); // pointer is always valid
@@ -55,7 +55,7 @@ impl Compiler {
                 }
             }
         }
-        OpCode::GlobalGet(constants.insert_full(Value::Symbol(ident)).0)
+        OpCode::GlobalGet(ident)
     }
 
     fn compile_list(
@@ -120,9 +120,7 @@ impl Compiler {
                 }
             }
         }
-        code.push(OpCode::SetGlobal(
-            constants.insert_full(Value::Symbol(*ident)).0,
-        ));
+        code.push(OpCode::SetGlobal(*ident));
         code.push(OpCode::LoadNil);
         Ok(())
     }
