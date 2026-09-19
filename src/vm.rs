@@ -71,7 +71,7 @@ impl VM {
                     .stack
                     .push(constants.get_index(*index).unwrap().clone()),
                 OpCode::JumpIfFalse(addr) => {
-                    if let Value::Nil = self.stack.pop().unwrap() {
+                    if let Value::Nil | Value::Bool(false) = self.stack.pop().unwrap() {
                         ip += addr;
                     }
                 }
