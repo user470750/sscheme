@@ -115,6 +115,7 @@ impl Compiler {
             for (i, local) in frame.1.iter().enumerate().rev() {
                 if local == ident {
                     code.push(OpCode::SetLocal(p, i));
+                    code.push(OpCode::LoadNil);
                     return Ok(());
                 }
             }
