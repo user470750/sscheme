@@ -1,5 +1,4 @@
-//! A minimal toy Scheme: a tree-walking interpreter in continuation-passing
-//! style (CPS).
+//! A minimal toy Scheme: a VM-based interpreter.
 
 mod lexer;
 mod symbol;
