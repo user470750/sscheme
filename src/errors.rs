@@ -3,6 +3,8 @@
 use chumsky::span::SimpleSpan;
 use thiserror::Error;
 
+use crate::symbol::Symbol;
+
 /// Any error reported by [`crate::Interpreter::eval`].
 #[derive(Error, Debug)]
 pub enum Error {
@@ -43,4 +45,13 @@ pub enum CompilerError {
 }
 
 #[derive(Error, Debug)]
-pub enum InterpreterError {}
+pub enum InterpreterError {
+    #[error("unbound variable `{0}`")]
+    UnboundVariable(Symbol),
+
+    #[error("`{0}` is not a procedure")]
+    NotProcedure(String),
+
+    #[error("procedure expects {expected} argument(s), got {passed}")]
+    ArityMismatch { expected: usize, passed: usize },
+}

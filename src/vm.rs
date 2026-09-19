@@ -37,7 +37,21 @@ impl VM {
         }
     }
 
-    pub(crate) fn interpret(
+    /// Runs top-level code. After an error the stack is cleared, so the VM
+    /// can run the next expression.
+    pub(crate) fn run(
+        &mut self,
+        code: &[OpCode],
+        constants: &mut IndexSet<Value>,
+    ) -> Result<Value, InterpreterError> {
+        let result = self.interpret(code, None, constants);
+        if result.is_err() {
+            self.stack.clear();
+        }
+        result
+    }
+
+    fn interpret(
         &mut self,
         code: &[OpCode],
         env: Option<&Env>,
@@ -64,7 +78,11 @@ impl VM {
                     self.stack.push(locals(env).get(*depth, *index));
                 }
                 OpCode::GlobalGet(ident) => {
-                    self.stack.push(self.global_env.get(ident).unwrap().clone());
+                    let value = self
+                        .global_env
+                        .get(ident)
+                        .ok_or(InterpreterError::UnboundVariable(*ident))?;
+                    self.stack.push(value.clone());
                 }
                 OpCode::SetLocal(depth, index) => {
                     locals(env).set(*depth, *index, self.stack.pop().unwrap());
@@ -78,15 +96,15 @@ impl VM {
                 })),
                 OpCode::Apply(args_len) => {
                     let args = self.stack.split_off(self.stack.len() - args_len);
-                    let Value::Func(Func::Closure {
-                        proto: callee,
-                        env: captured,
-                    }) = self.stack.pop().unwrap()
-                    else {
-                        panic!();
+                    let (callee, captured) = match self.stack.pop().unwrap() {
+                        Value::Func(Func::Closure { proto, env }) => (proto, env),
+                        other => return Err(InterpreterError::NotProcedure(other.to_string())),
                     };
                     if callee.arity != *args_len {
-                        panic!();
+                        return Err(InterpreterError::ArityMismatch {
+                            expected: callee.arity,
+                            passed: *args_len,
+                        });
                     }
                     let frame = Frame::new(args, captured);
                     let result = self.interpret(&callee.code, Some(&frame), constants)?;

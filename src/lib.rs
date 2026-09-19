@@ -50,7 +50,7 @@ impl Interpreter {
             let code = self
                 .compiler
                 .compile_toplevel(&expression, &mut self.constants)?;
-            result = self.vm.interpret(&code, None, &mut self.constants)?;
+            result = self.vm.run(&code, &mut self.constants)?;
         }
         Ok(result)
     }
