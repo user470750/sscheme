@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use crate::errors::CompilerError;
 use crate::symbol::Symbol;
-use crate::value::{Func, Value};
+use crate::value::{Func, Proto, Value};
 use crate::vm::OpCode;
 use indexmap::IndexSet;
 
@@ -168,8 +170,10 @@ impl Compiler {
         let closure = constants
             .insert_full(Value::Func(Func::Closure {
                 env_pointer: frame,
-                arity: params.len(),
-                code: body,
+                proto: Rc::new(Proto {
+                    arity: params.len(),
+                    code: body,
+                }),
             }))
             .0;
         self.env_pointer = pre_env_pointer;

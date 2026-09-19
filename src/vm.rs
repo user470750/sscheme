@@ -37,7 +37,7 @@ impl VM {
 
     pub(crate) fn interpret(
         &mut self,
-        code: Vec<OpCode>,
+        code: &[OpCode],
         env: &mut Vec<Vec<Value>>,
         constants: &mut IndexSet<Value>,
     ) -> Result<Value, InterpreterError> {
@@ -78,19 +78,18 @@ impl VM {
                     }
                     let Value::Func(Func::Closure {
                         env_pointer,
-                        arity,
-                        code: body,
+                        proto: callee,
                     }) = self.stack.pop().unwrap()
                     else {
                         panic!();
                     };
-                    if arity != *args_len {
+                    if callee.arity != *args_len {
                         panic!();
                     }
                     env.get_mut(env_pointer)
                         .unwrap()
                         .extend(args.into_iter().rev());
-                    let result = self.interpret(body, env, constants)?;
+                    let result = self.interpret(&callee.code, env, constants)?;
                     env.get_mut(env_pointer).unwrap().clear();
                     self.stack.push(result);
                 }

@@ -1,6 +1,7 @@
 //! Scheme values: the data programs work with and the code they are read as.
 
 use std::fmt;
+use std::rc::Rc;
 
 use crate::symbol::Symbol;
 use crate::vm::OpCode;
@@ -26,10 +27,16 @@ pub enum Value {
 pub enum Func {
     Closure {
         env_pointer: usize,
-        arity: usize,
-        code: Vec<OpCode>,
+        proto: Rc<Proto>,
     },
     NativeFunc, // TODO
+}
+
+/// The arity and code of a compiled `lambda`, shared by its closures.
+#[derive(Debug, Hash, PartialEq, Eq)]
+pub struct Proto {
+    pub(crate) arity: usize,
+    pub(crate) code: Vec<OpCode>,
 }
 
 impl fmt::Display for Value {
