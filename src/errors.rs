@@ -1,11 +1,11 @@
-//! Errors reported while reading Scheme code.
+//! Errors reported while reading, compiling and running Scheme code.
 
 use chumsky::span::SimpleSpan;
 use thiserror::Error;
 
-/// An error in the source code, with its position.
+/// Any error reported by [`crate::Interpreter::eval`].
 #[derive(Error, Debug)]
-pub(crate) enum Error {
+pub enum Error {
     /// Input that is not a valid token.
     #[error("unexpected input at {span}")]
     Lex { span: SimpleSpan },
@@ -13,6 +13,14 @@ pub(crate) enum Error {
     /// Tokens that do not form an expression.
     #[error("{message} at {span}")]
     Parse { span: SimpleSpan, message: String },
+
+    /// A malformed special form.
+    #[error(transparent)]
+    Compiler(#[from] CompilerError),
+
+    /// An error while running compiled code.
+    #[error(transparent)]
+    Interpreter(#[from] InterpreterError),
 }
 
 #[derive(Error, Debug)]

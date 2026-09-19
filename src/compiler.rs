@@ -4,20 +4,20 @@ use crate::vm::OpCode;
 use indexmap::IndexSet;
 use internment::Intern;
 
-struct Compiler {
+pub(crate) struct Compiler {
     env_pointer: Option<usize>,
     env: Vec<(Option<usize>, Vec<Intern<str>>)>,
 }
 
 impl Compiler {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             env_pointer: Some(0),
             env: vec![],
         }
     }
 
-    fn compile_toplevel(
+    pub(crate) fn compile_toplevel(
         &mut self,
         source: &Value,
         constants: &mut IndexSet<Value>,

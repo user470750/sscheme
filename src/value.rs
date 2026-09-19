@@ -7,7 +7,7 @@ use crate::vm::OpCode;
 
 /// A Scheme value.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub(crate) enum Value {
+pub enum Value {
     /// Nil, written `()`: a special value, not a list.
     Nil,
 
